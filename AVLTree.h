@@ -15,14 +15,127 @@ struct _avl_tree
     int (*pf_hash)(void *); //用户提供的 hash 函数
     int (*pf_free_element)(void *ele); // 用户提供的节点元素中保存的动态内存的释放方法
 
-    int (*add)(avl_tree_t *tree, void *node);    // 添加节点
-    void* (*query_by_key)(avl_tree_t *tree, int key); // 通过键值查询节点
-    void (*preorder)(avl_tree_t* tree,  void( *visit)(void* ele));    // 前序遍历
-    int (*size)(avl_tree_t* tree);  // 节点数量
-    int (*del_node_by_key)(avl_tree_t* tree, int key);  // 通过键值删除节点
-    int (*del_node_by_element)(avl_tree_t* tree, void *element);    //通过元素删除节点
-    void (*clear_node)(avl_tree_t *tree);   // 清除全部节点
-    void (*destory)(avl_tree_t** tree); //销毁树
+/*
+@func: 
+    增加节点
+
+@para: 
+    tree : 树指针
+    node : 要增加的节点
+
+@return:
+    int : -1 树指针为空， -2 创建节点失败， -3 重复插入
+
+@note:
+    None.
+*/
+    int (*add)(avl_tree_t *tree, void *node);
+
+/*
+@func: 
+    通过键值删除节点
+
+@para: 
+    tree : 树指针
+    key : 节点元素对应的键值
+
+@return:
+    int ： 0 成功  -1 失败
+
+@note:
+    None.
+*/
+    int (*del_node_by_key)(avl_tree_t* tree, int key);
+
+/*
+@func: 
+    通过元素删除节点
+
+@para: 
+    tree : 树指针
+    ele : 节点的元素
+
+@return:
+    int ： 0 成功  -1 失败
+
+@note:
+    None.
+*/
+    int (*del_node_by_element)(avl_tree_t* tree, void *element);
+    
+/*
+@func: 
+    通过键值查找节点
+
+@para: 
+    tree : 树指针
+    key : 节点元素对应的键值
+
+@return:
+    avl_node_t* ： 查找到的节点
+
+@note:
+    None.
+*/
+    void* (*query_by_key)(avl_tree_t *tree, int key);
+
+/*
+@func: 
+    前序遍历
+
+@para: 
+    tree ： 树指针
+    visit : 遍历时对每个元素执行的操作
+
+@return:
+    None
+*/
+    void (*preorder)(avl_tree_t* tree,  void( *visit)(void* ele));
+
+/*
+@func: 
+    获取树节点的数量
+
+@para: 
+    tree : 树指针
+
+@return:
+    int : 树节点的数量
+
+@note:
+    None.
+*/
+    int (*size)(avl_tree_t* tree); 
+
+/*
+@func: 
+    清除树的全部节点
+
+@para: 
+    tree : 树指针
+
+@return:
+    None.
+
+@note:
+    None.
+*/
+    void (*clear_node)(avl_tree_t *tree); 
+
+/*
+@func: 
+    销毁树
+
+@para: 
+    tree : 树指针
+
+@return:
+    None.
+
+@note:
+    None.
+*/
+    void (*destory)(avl_tree_t** tree);
 };
 
 
