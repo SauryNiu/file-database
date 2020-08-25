@@ -92,17 +92,13 @@ static void avl_tree_unlock(avl_tree_t* tree)
         pthread_mutex_unlock(&_this->m_tree_mutex);
 }
 
-
-
-
-
 /*
 @func: 
     添加到目标节点的 左/右 孩子
 
 @para: 
     node ： 要添加的节点
-    vp : 目标节点
+    p : 目标节点
 
 @return:
     None
