@@ -1,0 +1,1 @@
+/usr/bin/cc     CMakeFiles/example.dir/example.c.o CMakeFiles/example.dir/AVLTree.c.o CMakeFiles/example.dir/FileDatabase.c.o  -o example -rdynamic 

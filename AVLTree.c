@@ -427,6 +427,89 @@ static int avl_tree_add(avl_tree_t *tree, void *ele)
 
 /*
 @func: 
+    通过键值查找节点
+
+@para: 
+    tree : 树指针
+    key : 节点元素对应的键值
+
+@return:
+    avl_node_t* ： 查找到的节点
+
+@note:
+    None.
+*/
+static avl_node_t* query_by_key(avl_tree_t *tree, int key)
+{
+    if(NULL == tree) return NULL;
+    AVL_LOG_DEBUG("Query key %d", key);
+    avl_tree_private_t* _this = get_private_member(tree);
+
+    avl_node_t* p = _this->m_root;
+    while(NULL != p)
+    {
+        if(key > p->key)
+        {
+            p = p->right_child;
+        }
+        else if(key < p->key)
+        {
+            p = p->left_child;
+        }
+        else break;
+    }
+    return p;
+}
+
+static void* avl_tree_query_by_key(avl_tree_t *tree, int key)
+{
+    avl_node_t* node = query_by_key(tree, key);
+    
+    if(NULL == node) return NULL;
+
+    return node->element;
+}
+
+/*
+@func: 
+    通过元素查找节点
+
+@para: 
+    tree : 树指针
+    ele : 要查找的元素
+
+@return:
+    avl_node_t* ： 查找到的节点
+
+@note:
+    None.
+*/
+static avl_node_t* avl_tree_query_by_element(avl_tree_t *tree, void* ele)
+{
+    if(NULL == tree || NULL == ele) return NULL;
+
+    avl_tree_private_t* _this = get_private_member(tree);
+
+    int key = tree->pf_hash(ele);
+
+    avl_node_t* p = _this->m_root;
+    while(NULL != p)
+    {
+        if(key > p->key)
+        {
+            p = p->right_child;
+        }
+        else if(key < p->key)
+        {
+            p = p->left_child;
+        }
+        else break;
+    }
+    return p;
+}
+
+/*
+@func: 
     通过键值删除节点
 
 @para: 
@@ -579,89 +662,6 @@ static int avl_tree_del_by_element(avl_tree_t* tree, void* ele)
     if(NULL == node) return -1;
 
     return avl_tree_del_by_key(tree, node->key);
-}
-
-/*
-@func: 
-    通过键值查找节点
-
-@para: 
-    tree : 树指针
-    key : 节点元素对应的键值
-
-@return:
-    avl_node_t* ： 查找到的节点
-
-@note:
-    None.
-*/
-static avl_node_t* query_by_key(avl_tree_t *tree, int key)
-{
-    if(NULL == tree) return NULL;
-    AVL_LOG_DEBUG("Query key %d", key);
-    avl_tree_private_t* _this = get_private_member(tree);
-
-    avl_node_t* p = _this->m_root;
-    while(NULL != p)
-    {
-        if(key > p->key)
-        {
-            p = p->right_child;
-        }
-        else if(key < p->key)
-        {
-            p = p->left_child;
-        }
-        else break;
-    }
-    return p;
-}
-
-static void* avl_tree_query_by_key(avl_tree_t *tree, int key)
-{
-    avl_node_t* node = query_by_key(tree, key);
-    
-    if(NULL == node) return NULL;
-
-    return node->element;
-}
-
-/*
-@func: 
-    通过元素查找节点
-
-@para: 
-    tree : 树指针
-    ele : 要查找的元素
-
-@return:
-    avl_node_t* ： 查找到的节点
-
-@note:
-    None.
-*/
-static avl_node_t* avl_tree_query_by_element(avl_tree_t *tree, void* ele)
-{
-    if(NULL == tree || NULL == ele) return NULL;
-
-    avl_tree_private_t* _this = get_private_member(tree);
-
-    int key = tree->pf_hash(ele);
-
-    avl_node_t* p = _this->m_root;
-    while(NULL != p)
-    {
-        if(key > p->key)
-        {
-            p = p->right_child;
-        }
-        else if(key < p->key)
-        {
-            p = p->left_child;
-        }
-        else break;
-    }
-    return p;
 }
 
 /*
