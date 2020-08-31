@@ -1,3 +1,9 @@
+/*
+** File : AVLTree.c
+** Author : Saury
+** Date : 2020-08-30
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -540,8 +546,8 @@ static int avl_tree_del_by_key(avl_tree_t* tree, int key)
 
     /*
         当该节点存在左子树或者右子树的时候，比较两边的高度；
-        若左子树高度大于右子树，则取 node 节点左孩子的右子树中最大的那个节点来替换 node 节点
-        否则，取 node 节点右孩子的左子树中最小的那个节点来替换 node 节点
+        若左子树高度大于右子树，则取 node 节点左子树中最大的那个节点来替换 node 节点
+        否则，取 node 节点右子树中最小的那个节点来替换 node 节点
     */
     if (NULL != node->left_child || NULL != node->right_child)
     {
@@ -549,7 +555,7 @@ static int avl_tree_del_by_key(avl_tree_t* tree, int key)
         {
             temp = node->left_child;
 
-            while (NULL != temp->right_child) // 找到 node 左孩子的右子树中最大的节点
+            while (NULL != temp->right_child) // 找到 node 左子树中最大的节点
             {
                 temp = temp->right_child;
             }
