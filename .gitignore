@@ -2,3 +2,4 @@ avl_test
 avl_test.c
 example
 example.db
+*.o

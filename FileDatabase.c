@@ -181,6 +181,7 @@ static int file_db_add(file_db_t* db, void* ele)
     if(NULL != _this->m_tree->query_by_key(_this->m_tree->_this, _this->pf_get_ele_key(ele)))
         return -5;
 
+    int res_code = 0;
     file_db_record_t* record_data = (file_db_record_t*)malloc(sizeof(file_db_record_t));
     void* ele_memory = malloc(_this->m_data_size);
     memcpy(ele_memory, ele, _this->m_data_size);
@@ -190,6 +191,7 @@ static int file_db_add(file_db_t* db, void* ele)
     if(NULL == db_fp) 
     {
         FILE_DB_LOG_DEBUG("open db file error");
+        res_code = -6;
         goto RUNTIME_ERROR;
     }
     fseek(db_fp, 0, SEEK_END);
@@ -200,6 +202,7 @@ static int file_db_add(file_db_t* db, void* ele)
     {
         FILE_DB_LOG_DEBUG("write ele error, write[%d] but [%d]", _this->m_data_size, write_len);
         fclose(db_fp);
+        res_code = -7;
         goto RUNTIME_ERROR;
     }
     _this->m_data_cnt++;
@@ -212,6 +215,7 @@ static int file_db_add(file_db_t* db, void* ele)
         _this->m_data_cnt--;
         fclose(db_fp);
         truncate(_this->m_path, record_data->offset);
+        res_code = -8;
         goto RUNTIME_ERROR;
     }
     fflush(db_fp);
@@ -224,7 +228,7 @@ RUNTIME_ERROR:
     free(ele_memory);
     free(record_data);
     pthread_mutex_unlock(&_this->m_file_db_mutex);
-    return -6;
+    return res_code;
 }
 
 /*
@@ -248,33 +252,39 @@ static int file_db_del(file_db_t* db, int key)
     if(NULL == _this) 
     {
         FILE_DB_LOG_DEBUG("Filedatabase error!");
-        return -1;
+        return -2;
     }
     file_db_record_t* record_data = _this->m_tree->query_by_key(_this->m_tree->_this, key);
 
     if(NULL == record_data)
     {
         FILE_DB_LOG_DEBUG("No such element. Del fail!");
-        return -2;
+        return -3;
     }
 
     pthread_mutex_lock(&_this->m_file_db_mutex);
     FILE* db_fp = fopen(_this->m_path, "rb+");
+    if(NULL == db_fp)
+    {
+        pthread_mutex_unlock(&_this->m_file_db_mutex);
+        return -4;
+    }
 
     if(record_data->offset < _this->m_head_size + sizeof(int) + _this->m_data_size * (_this->m_data_cnt - 1))
     {
         fseek(db_fp, 0, SEEK_END);
-        FILE_DB_LOG_DEBUG("File position %ld", ftell(db_fp));
+        
         fseek(db_fp, -_this->m_data_size, SEEK_END);
-        FILE_DB_LOG_DEBUG("File position %ld", ftell(db_fp))
+       
         void* buff = malloc(_this->m_data_size);
         
         if(1 != fread(buff, _this->m_data_size, 1, db_fp))
         {
             FILE_DB_LOG_DEBUG("Read tail element error! file position %ld", ftell(db_fp));
             free(buff);
+            fclose(db_fp);
             pthread_mutex_unlock(&_this->m_file_db_mutex);
-            return -3;
+            return -5;
         }
 
         fseek(db_fp, record_data->offset, SEEK_SET);
@@ -286,6 +296,7 @@ static int file_db_del(file_db_t* db, int key)
             free(buff);
             fclose(db_fp);
             pthread_mutex_unlock(&_this->m_file_db_mutex);
+            return -6;
         }
 
         free(buff);
@@ -299,7 +310,7 @@ static int file_db_del(file_db_t* db, int key)
         _this->m_data_cnt++;
         fclose(db_fp);
         pthread_mutex_unlock(&_this->m_file_db_mutex);
-        return -4;
+        return -7;
     }
 
     fclose(db_fp);
@@ -340,6 +351,7 @@ static int file_db_edit(file_db_t* db, int key, void *ele)
     if(NULL == record_data)
     {
         FILE_DB_LOG_DEBUG("Edit error, Query data error");
+        pthread_mutex_unlock(&_this->m_file_db_mutex);
         return -2;
     }
     
@@ -351,6 +363,7 @@ static int file_db_edit(file_db_t* db, int key, void *ele)
     if(NULL == db_fp) 
     {
         FILE_DB_LOG_DEBUG("Edit error, File error");
+        pthread_mutex_unlock(&_this->m_file_db_mutex);
         return -3;
     }
     fseek(db_fp, record_data->offset, SEEK_SET);
@@ -420,13 +433,13 @@ static int file_db_write_head(file_db_t* db, void* head)
     pthread_mutex_lock(&_this->m_file_db_mutex);
     FILE* db_fp = fopen(_this->m_path, "rb+");
 
-    if(NULL == db_fp) return -1;
+    if(NULL == db_fp) return -2;
 
     if(fwrite(head, _this->m_head_size, 1, db_fp) != 1)
     {
         fclose(db_fp);
         pthread_mutex_unlock(&_this->m_file_db_mutex);
-        return -1;
+        return -3;
     }
 
     fclose(db_fp);
@@ -462,7 +475,7 @@ static int file_db_read_head(file_db_t* db, void* head)
     if(fread(head, _this->m_head_size, 1, db_fp) != 1)
     {
         fclose(db_fp);
-        return -1;
+        return -2;
     }
 
     fclose(db_fp);
@@ -520,6 +533,8 @@ static int file_db_traverse(file_db_t* db, void (*visit)(void*))
 
     _this->pf_visit = visit;
     _this->m_tree->preorder(_this->m_tree->_this, file_db_visit_record);
+
+    return 0;
 }
 
 /*
